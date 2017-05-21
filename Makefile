@@ -1,4 +1,4 @@
-CC=clang++
+CC=/usr/local/bin/afl-clang++
 CFLAGS=-Wall -std=c++14
 OBJECTS=main.o
 TARGET=dreadnot

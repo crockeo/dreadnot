@@ -1,2 +1,3 @@
 *.o
 dreadnot
+fuzz/find/
