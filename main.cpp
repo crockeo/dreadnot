@@ -1,34 +1,41 @@
 #include <iostream>
 #include <cstring>
+#include <set>
 
 using namespace std;
 
-void trigger_error()
+set<char> contents;
+
+template <typename T>
+bool con(const set<T>& set, const T v)
 {
-    int *ptr = nullptr;
-    *ptr = 5;
+    return set.find(v) != set.end();
 }
 
 int main(int argc, char **argv)
 {
-    const char *target_str = "Space... The final frontier. These are the \
-voyages of the starship Enterprise. It's continuing mission, to explore \
-strange new worlds. To seek out new life and new civilizations. To boldly go \
-where no one has gone before.";
-    const int target_str_len = strlen(target_str);
+    const char *target_chars = "atlfpqormn";
+    const int target_chars_len = strlen(target_chars);
+    const int max_count = 50;
 
-    int i = 0;
+    bool b;
     char c;
-    while (cin.get(c) && i < target_str_len)
+    for (int j = 0; j < max_count && cin.get(c); j++)
     {
-        if (c == target_str[i])
-            i++;
-        else
-            i = 0;
-    }
+        b = true;
+        contents.insert(c);
+        for (int i = 0; i < target_chars_len; i++)
+        {
+            if (!con(contents, target_chars[i]))
+            {
+                b = false;
+                break;
+            }
+        }
 
-    if (i == target_str_len)
-        trigger_error();
+        if (b)
+            abort();
+    }
 
     return 0;
 }
