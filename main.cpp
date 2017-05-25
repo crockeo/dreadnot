@@ -11,28 +11,14 @@ class BrokenHeap : public SuperHeap
 {
 private:
     enum mem_action { MALLOC, FREE };
-    constexpr static int actions_len = 20;
+    constexpr static int actions_len = 6;
     const mem_action actions[actions_len] {
         MALLOC,
         MALLOC,
         FREE,
         MALLOC,
         FREE,
-        MALLOC,
-        MALLOC,
-        FREE,
-        FREE,
-        FREE,
-        MALLOC,
-        FREE,
-        FREE,
-        MALLOC,
-        MALLOC,
-        MALLOC,
-        MALLOC,
-        FREE,
-        MALLOC,
-        MALLOC,
+        FREE
     };
 
     int pos = 0;
@@ -82,8 +68,11 @@ int main()
 
         if (command == "free")
         {
-            brokenHeap.free(chunks.back());
-            chunks.pop_back();
+            if (chunks.size() > 0)
+            {
+                brokenHeap.free(chunks.back());
+                chunks.pop_back();
+            }
         }
     }
 
