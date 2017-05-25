@@ -22,5 +22,8 @@ $(TARGET): $(OBJECTS)
 $(OBJECTS): %.o : %.cpp
 	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
+test: $(TARGET)
+	afl-fuzz -i fuzz/case/ -o fuzz/find/ -x fuzz/keywords.txt -- ./$(TARGET)
+
 clean:
 	rm -rf $(OBJECTS) $(TARGET)

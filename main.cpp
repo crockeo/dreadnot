@@ -10,7 +10,42 @@ template <typename SuperHeap>
 class BrokenHeap : public SuperHeap
 {
 private:
-    int malloc_count = 0;
+    enum mem_action { MALLOC, FREE };
+    constexpr static int actions_len = 20;
+    const mem_action actions[actions_len] {
+        MALLOC,
+        MALLOC,
+        FREE,
+        MALLOC,
+        FREE,
+        MALLOC,
+        MALLOC,
+        FREE,
+        FREE,
+        FREE,
+        MALLOC,
+        FREE,
+        FREE,
+        MALLOC,
+        MALLOC,
+        MALLOC,
+        MALLOC,
+        FREE,
+        MALLOC,
+        MALLOC,
+    };
+
+    int pos = 0;
+
+    void check_case(mem_action action)
+    {
+        if (actions[pos] == action)
+        {
+            if (++pos >= actions_len)
+                abort();
+        } else
+            pos = 0;
+    }
 
 public:
     inline void *malloc(size_t size)
@@ -19,8 +54,7 @@ public:
         if (ptr == nullptr)
             return nullptr;
 
-        if (++malloc_count > 5)
-            abort();
+        check_case(mem_action::MALLOC);
 
         return ptr;
     }
@@ -28,13 +62,8 @@ public:
     inline void free(void *ptr)
     {
         SuperHeap::free(ptr);
-        malloc_count--;
+        check_case(mem_action::FREE);
     }
-};
-
-struct Chunk
-{
-    char info[32];
 };
 
 int main()
