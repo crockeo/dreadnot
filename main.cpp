@@ -1,40 +1,61 @@
 #include <iostream>
-#include <cstring>
-#include <set>
+#include <vector>
+
+#include "heap-layers/heaplayers.h"
 
 using namespace std;
+using namespace HL;
 
-set<char> contents;
-
-template <typename T>
-bool con(const set<T>& set, const T v)
+template <typename SuperHeap>
+class BrokenHeap : public SuperHeap
 {
-    return set.find(v) != set.end();
-}
+private:
+    int malloc_count = 0;
 
-int main(int argc, char **argv)
-{
-    const char *target_chars = "atlfpqormn";
-    const int target_chars_len = strlen(target_chars);
-    const int max_count = 50;
-
-    bool b;
-    char c;
-    for (int j = 0; j < max_count && cin.get(c); j++)
+public:
+    inline void *malloc(size_t size)
     {
-        b = true;
-        contents.insert(c);
-        for (int i = 0; i < target_chars_len; i++)
+        void *ptr = SuperHeap::malloc(size);
+        if (ptr == nullptr)
+            return nullptr;
+
+        if (++malloc_count > 5)
+            abort();
+
+        return ptr;
+    }
+
+    inline void free(void *ptr)
+    {
+        SuperHeap::free(ptr);
+        malloc_count--;
+    }
+};
+
+struct Chunk
+{
+    char info[32];
+};
+
+int main()
+{
+    BrokenHeap<MallocHeap> brokenHeap;
+
+    vector<void *> chunks;
+    const size_t chunk_size = 32;
+    string command;
+    while (cin >> command)
+    {
+        if (command == "malloc")
         {
-            if (!con(contents, target_chars[i]))
-            {
-                b = false;
-                break;
-            }
+            chunks.push_back(brokenHeap.malloc(chunk_size));
         }
 
-        if (b)
-            abort();
+        if (command == "free")
+        {
+            brokenHeap.free(chunks.back());
+            chunks.pop_back();
+        }
     }
 
     return 0;
