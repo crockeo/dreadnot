@@ -6,13 +6,14 @@
 using namespace std;
 using namespace HL;
 
+enum opt_t { MALLOC, FREE };
+
 template <typename SuperHeap>
 class BrokenHeap : public SuperHeap
 {
 private:
-    enum mem_action { MALLOC, FREE };
     constexpr static int actions_len = 6;
-    const mem_action actions[actions_len] {
+    const opt_t actions[actions_len] {
         MALLOC,
         MALLOC,
         FREE,
@@ -23,7 +24,7 @@ private:
 
     int pos = 0;
 
-    void check_case(mem_action action)
+    void check_case(opt_t action)
     {
         if (actions[pos] == action)
         {
@@ -40,7 +41,7 @@ public:
         if (ptr == nullptr)
             return nullptr;
 
-        check_case(mem_action::MALLOC);
+        check_case(opt_t::MALLOC);
 
         return ptr;
     }
@@ -48,33 +49,75 @@ public:
     inline void free(void *ptr)
     {
         SuperHeap::free(ptr);
-        check_case(mem_action::FREE);
+        check_case(opt_t::FREE);
     }
 };
 
-int main()
+namespace parse
 {
-    BrokenHeap<MallocHeap> brokenHeap;
-
-    vector<void *> chunks;
-    const size_t chunk_size = 32;
-    string command;
-    while (cin >> command)
+    struct token_t
     {
-        if (command == "malloc")
+        opt_t operation;
+        int name;
+        size_t length;
+    };
+
+    typedef vector<token_t> trace_t;
+
+    trace_t lex(istream& in)
+    {
+        trace_t trace;
+
+        const int line_len = 512;
+        char line[line_len];
+
+        char operation[16];
+        int name;
+        size_t length;
+        while (in.getline(line, line_len))
         {
-            chunks.push_back(brokenHeap.malloc(chunk_size));
+            if (sscanf(line, "%s %d %lu", operation, &name, &length) < 3)
+            {
+                break;
+            }
+
+            token_t token;
+            if (strncmp(operation, "malloc", 16) == 0)
+                token.operation = MALLOC;
+            if (strncmp(operation, "free", 16) == 0)
+                token.operation = FREE;
+
+            token.name = name;
+            token.length = length;
+            
+            trace.push_back(token);
         }
 
-        if (command == "free")
-        {
-            if (chunks.size() > 0)
-            {
-                brokenHeap.free(chunks.back());
-                chunks.pop_back();
-            }
-        }
+        return trace;
     }
 
-    return 0;
+    void print_trace(trace_t trace)
+    {
+        for (auto it = trace.begin(); it != trace.end(); it++)
+        {
+            switch (it->operation)
+            {
+            case MALLOC:
+                cout << "malloc ";
+                break;
+            case FREE:
+                cout << "free ";
+                break;
+            }
+
+            cout << it->name << " " << it->length << endl;
+        }
+    }
+}
+
+int main()
+{
+    parse::trace_t trace = parse::lex(cin);
+
+    parse::print_trace(trace);
 }
