@@ -113,11 +113,43 @@ namespace parse
             cout << it->name << " " << it->length << endl;
         }
     }
+
+    template <typename allocator>
+    void execute(allocator& alloc, trace_t trace)
+    {
+        map<int, void *> chunks;
+
+        for (auto it = trace.begin(); it != trace.end(); it++)
+        {
+            if (it->operation == MALLOC)
+            {
+                void *data = alloc.malloc(it->length);
+                memset(data, it->name, it->length);
+                chunks.insert(pair<int, void *>(it->name, data));
+
+                // TODO: Validate all data.
+            } else if (it->operation == FREE)
+            {
+                auto cit = chunks.find(it->name);
+                if (cit == chunks.end())
+                {
+                    // TODO: Make sure this never happens in AFL grammar.
+                    abort();
+                }
+
+                void *data = chunks[it->name];
+                alloc.free(data);
+                chunks.erase(cit);
+            }
+        }
+    }
 }
 
 int main()
 {
     parse::trace_t trace = parse::lex(cin);
-
     parse::print_trace(trace);
+
+    BrokenHeap<MallocHeap> brokenHeap;
+    parse::execute<BrokenHeap<MallocHeap> >(brokenHeap, trace);
 }
