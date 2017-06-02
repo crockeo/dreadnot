@@ -1,0 +1,9 @@
+malloc 0 0
+malloc 0 0
+malloc 0 0
+free 0
+free 0
+free 0
+malloc 0 0
+free 0
+malloc 0 0

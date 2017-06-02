@@ -1,2 +1,2 @@
-malloc="malloc"
-free="free"
+malloc="malloc 1 1"
+free="free 1 1"

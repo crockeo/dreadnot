@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include <vector>
 
 #include "heap-layers/heaplayers.h"
@@ -55,41 +56,74 @@ public:
 
 namespace parse
 {
+    //struct token_t
+    //{
+        //opt_t operation;
+        //int name;
+        //size_t length;
+    //};
+
     struct token_t
     {
         opt_t operation;
         int name;
-        size_t length;
     };
 
-    typedef vector<token_t> trace_t;
+    struct malloc_t : public token_t
+    {
+        size_t size;
+    };
 
-    trace_t lex(istream& in)
+    struct free_t : public token_t { };
+
+    typedef vector<token_t *> trace_t;
+    typedef map<int, void *> state_t;
+
+    trace_t lex(istream& in) throw(runtime_error)
     {
         trace_t trace;
 
-        const int line_len = 512;
+        const int line_len = 256;
         char line[line_len];
 
-        char operation[16];
-        int name;
-        size_t length;
+        char *tok;
         while (in.getline(line, line_len))
         {
-            if (sscanf(line, "%s %d %lu", operation, &name, &length) < 3)
+            token_t *token;
+            tok = strtok(line, " ");
+            if (!tok)
+                throw runtime_error("No operation token.");
+
+            if (strcmp(tok, "malloc") == 0)
             {
-                break;
+                token = new malloc_t();
+                token->operation = MALLOC;
+            }
+            else if (strcmp(tok, "free") == 0)
+            {
+                token = new free_t();
+                token->operation = FREE;
+            }
+            else
+                throw runtime_error("Improper operation token.");
+
+            tok = strtok(nullptr, " ");
+            if (!tok)
+                throw runtime_error("No name token.");
+
+            if (sscanf(tok, "%d", &token->name) == 0)
+                throw runtime_error("Improper name token.");
+
+            if (token->operation == MALLOC)
+            {
+                tok = strtok(nullptr, " ");
+                if (!tok)
+                    throw runtime_error("No size token.");
+
+                if (sscanf(tok, "%lu", &((malloc_t *)token)->size) == 0)
+                    throw runtime_error("Improper size token.");
             }
 
-            token_t token;
-            if (strncmp(operation, "malloc", 16) == 0)
-                token.operation = MALLOC;
-            if (strncmp(operation, "free", 16) == 0)
-                token.operation = FREE;
-
-            token.name = name;
-            token.length = length;
-            
             trace.push_back(token);
         }
 
@@ -100,7 +134,8 @@ namespace parse
     {
         for (auto it = trace.begin(); it != trace.end(); it++)
         {
-            switch (it->operation)
+            token_t *curr = *it;
+            switch (curr->operation)
             {
             case MALLOC:
                 cout << "malloc ";
@@ -110,34 +145,48 @@ namespace parse
                 break;
             }
 
-            cout << it->name << " " << it->length << endl;
+            cout << curr->name;
+            if (curr->operation == MALLOC)
+                cout << " " << ((malloc_t *)curr)->size;
+            cout << endl;
         }
     }
 
-    template <typename allocator>
-    void execute(allocator& alloc, trace_t trace)
+    bool validate_state(const state_t& state)
     {
-        map<int, void *> chunks;
+        for (auto it = state.begin(); it != state.end(); it++)
+        {
+            // TODO: Perform validation.
+        }
+
+        return true;
+    }
+
+    template <typename allocator>
+    void execute(allocator& alloc, trace_t trace) throw(runtime_error)
+    {
+        state_t chunks;
 
         for (auto it = trace.begin(); it != trace.end(); it++)
         {
-            if (it->operation == MALLOC)
-            {
-                void *data = alloc.malloc(it->length);
-                memset(data, it->name, it->length);
-                chunks.insert(pair<int, void *>(it->name, data));
+            token_t *curr = *it;
 
-                // TODO: Validate all data.
-            } else if (it->operation == FREE)
+            if (curr->operation == MALLOC)
             {
-                auto cit = chunks.find(it->name);
+                void *data = alloc.malloc(((malloc_t *)curr)->size);
+                memset(data, curr->name, ((malloc_t *)curr)->size);
+                chunks.insert(pair<int, void *>(curr->name, data));
+
+                if (!validate_state(chunks))
+                    abort(); // TODO: Expand this.
+            } else if (curr->operation == FREE)
+            {
+                // TODO: Ensure AFL only creates matching frees.
+                auto cit = chunks.find(curr->name);
                 if (cit == chunks.end())
-                {
-                    // TODO: Make sure this never happens in AFL grammar.
-                    abort();
-                }
+                    throw runtime_error("Attempting to free a non-existant chunk.");
 
-                void *data = chunks[it->name];
+                void *data = chunks[curr->name];
                 alloc.free(data);
                 chunks.erase(cit);
             }
@@ -147,9 +196,25 @@ namespace parse
 
 int main()
 {
-    parse::trace_t trace = parse::lex(cin);
-    parse::print_trace(trace);
+    parse::trace_t trace;
+    try
+    {
+        parse::trace_t trace = parse::lex(cin);
+    } catch (runtime_error& e)
+    {
+        cout << "Lex error: " << e.what() << endl;
+        return 1;
+    }
 
     BrokenHeap<MallocHeap> brokenHeap;
-    parse::execute<BrokenHeap<MallocHeap> >(brokenHeap, trace);
+    try
+    {
+        parse::execute<BrokenHeap<MallocHeap> >(brokenHeap, trace);
+    } catch (runtime_error& e)
+    {
+        cout << "Execute error: " << e.what() << endl;
+    }
+
+    for (auto it = trace.begin(); it != trace.end(); it++)
+        free(*it);
 }
