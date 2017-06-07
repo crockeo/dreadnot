@@ -1,7 +1,7 @@
 DEF_CC=clang
 DEF_CXX=clang++
-AFL_CC=/usr/local/bin/afl-clang
-AFL_CXX=/usr/local/bin/afl-clang++
+AFL_CC=afl-clang
+AFL_CXX=afl-clang++
 CFLAGS=-Wall -std=c11
 CXFLAGS=-Wall -std=c++14
 INCLUDES=-I./heap-layers
