@@ -18,23 +18,12 @@ int main()
     {
 #endif
         parse::trace_t trace;
-        try
-        {
-            parse::trace_t trace = parse::lex(cin);
-        } catch (runtime_error& e)
-        {
-            cout << "Lex error: " << e.what() << endl;
+        if (!parse::lex(trace, cin))
             return 1;
-        }
 
         BrokenHeap<MallocHeap> brokenHeap;
-        try
-        {
-            parse::execute<BrokenHeap<MallocHeap> >(brokenHeap, trace);
-        } catch (runtime_error& e)
-        {
-            cout << "Execute error: " << e.what() << endl;
-        }
+        if (!parse::execute<BrokenHeap<MallocHeap>>(brokenHeap, trace))
+        { }
 
         for (auto it = trace.begin(); it != trace.end(); it++)
             free(*it);

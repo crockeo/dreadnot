@@ -29,14 +29,14 @@ namespace parse
     typedef vector<token_t *> trace_t;
     typedef map<int, void *> state_t;
 
-    trace_t lex(istream& in) throw(runtime_error);
+    bool lex(trace_t &trace, istream& in);
 
     void print_trace(trace_t trace);
 
     bool validate_state(const state_t& state);
 
     template <typename allocator>
-    void execute(allocator& alloc, trace_t trace) throw(runtime_error)
+    bool execute(allocator& alloc, trace_t trace)
     {
         state_t chunks;
 
@@ -57,13 +57,15 @@ namespace parse
                 // TODO: Ensure AFL only creates matching frees.
                 auto cit = chunks.find(curr->name);
                 if (cit == chunks.end())
-                    throw runtime_error("Attempting to free a non-existant chunk.");
+                    return false;
 
                 void *data = chunks[curr->name];
                 alloc.free(data);
                 chunks.erase(cit);
             }
         }
+
+        return true;
     }
 }
 

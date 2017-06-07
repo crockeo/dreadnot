@@ -6,10 +6,8 @@ namespace parse
 {
     using namespace std;
 
-    trace_t lex(istream& in) throw(runtime_error)
+    bool lex(trace_t &trace, istream& in)
     {
-        trace_t trace;
-
         const int line_len = 256;
         char line[line_len];
 
@@ -19,7 +17,7 @@ namespace parse
             token_t *token;
             tok = strtok(line, " ");
             if (!tok)
-                throw runtime_error("No operation token.");
+                return false;
 
             if (strcmp(tok, "malloc") == 0)
             {
@@ -32,29 +30,29 @@ namespace parse
                 token->operation = FREE;
             }
             else
-                throw runtime_error("Improper operation token.");
+                return false;
 
             tok = strtok(nullptr, " ");
             if (!tok)
-                throw runtime_error("No name token.");
+                return false;
 
             if (sscanf(tok, "%d", &token->name) == 0)
-                throw runtime_error("Improper name token.");
+                return false;
 
             if (token->operation == MALLOC)
             {
                 tok = strtok(nullptr, " ");
                 if (!tok)
-                    throw runtime_error("No size token.");
+                    return false;
 
                 if (sscanf(tok, "%lu", &((malloc_t *)token)->size) == 0)
-                    throw runtime_error("Improper size token.");
+                    return false;
             }
 
             trace.push_back(token);
         }
 
-        return trace;
+        return true;
     }
 
     void print_trace(trace_t trace)
