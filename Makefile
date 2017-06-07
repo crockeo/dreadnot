@@ -2,12 +2,16 @@ DEF_CC=clang
 DEF_CXX=clang++
 AFL_CC=/usr/local/bin/afl-clang
 AFL_CXX=/usr/local/bin/afl-clang++
-CFLAGS=-Wall -std=c++14
+CFLAGS=-Wall -std=c11
+CXFLAGS=-Wall -std=c++14
 INCLUDES=-I./heap-layers
 LINKS=
 HEADERS=parse.hpp heap.hpp
 OBJECTS=main.o parse.o
 TARGET=dreadnot
+
+POST_OBJECTS=postprocess.o
+POST=postprocess.so
 
 ifeq ($(AFL), 1)
 	CC=$(AFL_CC)
@@ -17,14 +21,22 @@ else
 	CXX=$(DEF_CXX)
 endif
 
+all: $(TARGET) $(POST)
+
 $(TARGET): $(HEADERS) $(OBJECTS)
-	$(CXX) $(CFLAGS) -o $(TARGET) $(OBJECTS)
+	$(CXX) $(CXFLAGS) -o $(TARGET) $(OBJECTS)
 
 $(OBJECTS): %.o : %.cpp
-	$(CXX) $(INCLUDES) $(CFLAGS) -c $< -o $@
+	$(CXX) $(INCLUDES) $(CXFLAGS) -c $< -o $@
 
-test: $(TARGET)
-	afl-fuzz -i fuzz/case/ -o fuzz/find/ -x fuzz/keywords.txt -- ./$(TARGET)
+$(POST): $(POST_OBJECTS)
+	$(CC) -shared $(CFLAGS) -o $(POST) $(POST_OBJECTS)
+
+$(POST_OBJECTS): %.o : %.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c $< -o $@
+
+test: $(TARGET) $(POST)
+	AFL_POST_LIBRARY=./postprocess.so afl-fuzz -i fuzz/case/ -o fuzz/find/ -x fuzz/keywords.txt -- ./$(TARGET)
 
 clean:
-	rm -rf $(OBJECTS) $(TARGET)
+	rm -rf $(OBJECTS) $(TARGET) $(POST) $(POST_OBJECTS)
