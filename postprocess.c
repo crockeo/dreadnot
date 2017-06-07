@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 enum mode_t { MALLOC, FREE };
+typedef enum mode_t mode_t;
 
 const unsigned char *afl_postprocess(const unsigned char *in_buf, unsigned int *len)
 {
@@ -34,15 +35,18 @@ const unsigned char *afl_postprocess(const unsigned char *in_buf, unsigned int *
                 return NULL;
 
         // Checking that we have a valid size (if we're using malloc).
-        tok = strtok(NULL, " ");
-        if (!tok)
-            return NULL;
-        tok_len = strlen(tok);
-        for (int i = 0; i < tok_len; i++)
-            if (tok[i] < '0' || tok[i] > '9')
+        if (mode == MALLOC)
+        {
+            tok = strtok(NULL, " ");
+            if (!tok)
                 return NULL;
+            tok_len = strlen(tok);
+            for (int i = 0; i < tok_len; i++)
+                if (tok[i] < '0' || tok[i] > '9')
+                    return NULL;
 
-        line = strtok(NULL, "\n");
+            line = strtok(NULL, "\n");
+        }
     }
 
     return in_buf;
