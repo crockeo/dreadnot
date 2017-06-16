@@ -51,30 +51,30 @@ POST_OBJECTS=postprocess.o
 POST=postprocess.so
 
 ifeq (\$(AFL), 1)
-    CC=\$(AFL_CC)
-    CXX=\$(AFL_CXX)
+	CC=\$(AFL_CC)
+	CXX=\$(AFL_CXX)
 else
-    CC=\$(DEF_CC)
-    CXX=\$(DEF_CXX)
+	CC=\$(DEF_CC)
+	CXX=\$(DEF_CXX)
 endif
 
 all: \$(TARGET) \$(POST)
 
 \$(TARGET): \$(HEADERS) \$(OBJECTS)
-    \$(CXX) \$(CXFLAGS) -o \$(TARGET) \$(OBJECTS)
+	\$(CXX) \$(CXFLAGS) -o \$(TARGET) \$(OBJECTS)
 
 \$(OBJECTS): %.o : %.cpp
-    \$(CXX) \$(INCLUDES) \$(CXFLAGS) -c \$< -o \$@
+	\$(CXX) \$(INCLUDES) \$(CXFLAGS) -c \$< -o \$@
 
 \$(POST): \$(POST_OBJECTS)
-    \$(CC) -shared \$(CFLAGS) -o \$(POST) \$(POST_OBJECTS)
+	\$(CC) -shared \$(CFLAGS) -o \$(POST) \$(POST_OBJECTS)
 
 \$(POST_OBJECTS): %.o : %.c
-    \$(CC) -fPIC \$(INCLUDES) \$(CFLAGS) -c \$< -o \$@
+	\$(CC) -fPIC \$(INCLUDES) \$(CFLAGS) -c \$< -o \$@
 
 test: \$(TARGET) \$(POST)
-    AFL_POST_LIBRARY=./postprocess.so afl-fuzz -i fuzz/case/ -o fuzz/find/ -x fuzz/keywords.txt -- ./\$(TARGET)
+	AFL_POST_LIBRARY=./postprocess.so afl-fuzz -i fuzz/case/ -o fuzz/find/ -x fuzz/keywords.txt -- ./\$(TARGET)
 
 clean:
-    rm -rf \$(OBJECTS) \$(TARGET) \$(POST) \$(POST_OBJECTS)" > testfile
+	rm -rf \$(OBJECTS) \$(TARGET) \$(POST) \$(POST_OBJECTS)\n" > Makefile
 fi
