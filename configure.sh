@@ -76,5 +76,5 @@ test: \$(TARGET) \$(POST)
 	AFL_POST_LIBRARY=./postprocess.so afl-fuzz -i fuzz/case/ -o fuzz/find/ -x fuzz/keywords.txt -- ./\$(TARGET)
 
 clean:
-	rm -rf \$(OBJECTS) \$(TARGET) \$(POST) \$(POST_OBJECTS)\n" > Makefile
+	rm -rf \$(OBJECTS) \$(TARGET) \$(POST) \$(POST_OBJECTS)" > Makefile
 fi
