@@ -11,6 +11,21 @@ namespace parse
 {
     using namespace std;
 
+    /* Grammar Documentation
+     *
+     * OLD:
+     *   The old grammar is built off of relatively complex human-readable
+     *   string parsing; we use two tokens, 'malloc' and 'free' to denote an
+     *   operation, and on those we parameterize it with a name and, for malloc,
+     *   a size.
+     *
+     * NEW:
+     *   In the new scheme, we instead opt to rebalance readability and space,
+     *   favoring the latter over the former. We use single-character indicators
+     *   (rather than bits, for ease of parsing), 'M' and 'F', and follow with
+     *   either 8 bytes (name and size) for malloc, or 4 bytes (name) for free.
+     */
+
     enum opt_t { MALLOC, FREE };
 
     struct token_t
@@ -23,7 +38,9 @@ namespace parse
     typedef vector<token_t> trace_t;
     typedef map<int, void *> state_t;
 
-    bool lex(trace_t &trace, istream& in);
+    bool lex_old(trace_t& trace, istream& in);
+    bool lex(trace_t& trace, istream& in);
+    bool lex(trace_t& trace, istream& in, bool old);
 
     void print_trace(trace_t trace);
 

@@ -18,7 +18,7 @@ int main()
     {
 #endif
         parse::trace_t trace;
-        if (!parse::lex(trace, cin))
+        if (!parse::lex(trace, cin, true)) // Using the old version for now.
             return 1;
 
         BrokenHeap<MallocHeap> brokenHeap;
