@@ -24,9 +24,6 @@ int main()
         BrokenHeap<MallocHeap> brokenHeap;
         if (!parse::execute<BrokenHeap<MallocHeap>>(brokenHeap, trace))
         { }
-
-        for (auto it = trace.begin(); it != trace.end(); it++)
-            free(*it);
 #ifdef __AFL_LOOP
     }
 #endif

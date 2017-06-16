@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 enum mode_t { MALLOC, FREE };
-typedef enum mode_t mode_t;
 
 const unsigned char *afl_postprocess(const unsigned char *in_buf, unsigned int *len)
 {
@@ -14,7 +13,7 @@ const unsigned char *afl_postprocess(const unsigned char *in_buf, unsigned int *
     while (line)
     {
         // Checking that we have correct modes.
-        mode_t mode;
+        enum mode_t mode;
         char *tok = strtok(line, " ");
         if (!tok)
             return NULL;

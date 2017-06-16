@@ -16,17 +16,11 @@ namespace parse
     struct token_t
     {
         opt_t operation;
-        int name;
+        uint32_t name;
+        uint32_t size;
     };
 
-    struct malloc_t : public token_t
-    {
-        size_t size;
-    };
-
-    struct free_t : public token_t { };
-
-    typedef vector<token_t *> trace_t;
+    typedef vector<token_t> trace_t;
     typedef map<int, void *> state_t;
 
     bool lex(trace_t &trace, istream& in);
@@ -42,24 +36,22 @@ namespace parse
 
         for (auto it = trace.begin(); it != trace.end(); it++)
         {
-            token_t *curr = *it;
-
-            if (curr->operation == MALLOC)
+            if (it->operation == MALLOC)
             {
-                void *data = alloc.malloc(((malloc_t *)curr)->size);
-                memset(data, curr->name, ((malloc_t *)curr)->size);
-                chunks.insert(pair<int, void *>(curr->name, data));
+                void *data = alloc.malloc(it->size);
+                memset(data, it->name, it->size);
+                chunks.insert(pair<int, void *>(it->name, data));
 
                 if (!validate_state(chunks))
                     abort(); // TODO: Expand this.
-            } else if (curr->operation == FREE)
+            } else if (it->operation == FREE)
             {
-                // TODO: Ensure AFL only creates matching frees.
-                auto cit = chunks.find(curr->name);
+                // TODO: Ensure fuzzer only generates matching frees.
+                auto cit = chunks.find(it->name);
                 if (cit == chunks.end())
                     return false;
 
-                void *data = chunks[curr->name];
+                void *data = chunks[it->name];
                 alloc.free(data);
                 chunks.erase(cit);
             }

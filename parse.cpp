@@ -14,21 +14,17 @@ namespace parse
         char *tok;
         while (in.getline(line, line_len))
         {
-            token_t *token;
+            token_t token;
+            memset(&token, 0, sizeof(token_t));
+
             tok = strtok(line, " ");
             if (!tok)
                 return false;
 
             if (strcmp(tok, "malloc") == 0)
-            {
-                token = new malloc_t();
-                token->operation = MALLOC;
-            }
+                token.operation = MALLOC;
             else if (strcmp(tok, "free") == 0)
-            {
-                token = new free_t();
-                token->operation = FREE;
-            }
+                token.operation = FREE;
             else
                 return false;
 
@@ -36,16 +32,16 @@ namespace parse
             if (!tok)
                 return false;
 
-            if (sscanf(tok, "%d", &token->name) == 0)
+            if (sscanf(tok, "%d", &token.name) == 0)
                 return false;
 
-            if (token->operation == MALLOC)
+            if (token.operation == MALLOC)
             {
                 tok = strtok(nullptr, " ");
                 if (!tok)
                     return false;
 
-                if (sscanf(tok, "%lu", &((malloc_t *)token)->size) == 0)
+                if (sscanf(tok, "%d", &token.size) == 0)
                     return false;
             }
 
@@ -59,8 +55,7 @@ namespace parse
     {
         for (auto it = trace.begin(); it != trace.end(); it++)
         {
-            token_t *curr = *it;
-            switch (curr->operation)
+            switch (it->operation)
             {
             case MALLOC:
                 cout << "malloc ";
@@ -70,9 +65,9 @@ namespace parse
                 break;
             }
 
-            cout << curr->name;
-            if (curr->operation == MALLOC)
-                cout << " " << ((malloc_t *)curr)->size;
+            cout << it->name;
+            if (it->operation == MALLOC)
+                cout << " " << it->size;
             cout << endl;
         }
     }
