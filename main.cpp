@@ -2,6 +2,8 @@
 #include <cstring>
 #include <sstream>
 
+#include <getopt.h>
+
 #include "heap-layers/heaplayers.h"
 
 #include "parse.hpp"
@@ -14,32 +16,99 @@ using namespace HL;
 
 char program_input[4096];
 
-void print_correct_usage()
+struct arguments_t
 {
-    cout << "Correct usage:" << endl
-         << "  dreadnot [fuzzmode]" << endl
-         << "    dreadnot - Reads input from stdin, parses out input into alloc\
- and free calls to test a heap." << endl
-         << "    fuzzmode - Used for FuzzBALL; provide a symblic block to the\
- location of program_input in main.cpp." << endl;
+    enum mode_t
+    {
+        AFL, FUZZBALL
+    };
+
+    bool help;
+    mode_t mode;
+
+    bool parse_error;
+};
+
+arguments_t parse_args(int argc, char **argv)
+{
+    arguments_t args;
+    memset(&args, 0, sizeof(arguments_t));
+
+    args.mode = arguments_t::mode_t::AFL;
+
+    struct option options[] =
+    {
+        { "help", no_argument, (int *)&args.help, true },
+
+        { "mode", required_argument, 0, 'm' },
+
+        { 0, 0, 0, 0 }
+    };
+
+    int idx = 0;
+    int c;
+    while ((c = getopt_long(argc, argv, "hm:", options, &idx)) > 0)
+    {
+        switch (c)
+        {
+        case 'h':
+            args.help = true;
+            break;
+
+        case 'm':
+            cout << "HELP" << endl;
+            if (strcmp(optarg, "afl") == 0)
+                args.mode = arguments_t::mode_t::AFL;
+            else if (strcmp(optarg, "fuzzball") == 0)
+                args.mode = arguments_t::mode_t::FUZZBALL;
+            else
+                args.parse_error = true;
+            break;
+        }
+    }
+
+    return args;
+}
+
+void print_help(int argc, char **argv)
+{
+    cout << "Usage:" << endl
+         << "  " << argv[0] << " [flags]" << endl
+         << endl
+         << "Flags:" << endl
+         << "  --help (-h)            -- Displays this page." << endl
+         << "  --mode (-m) = AFL      -- Build for AFL mode." << endl
+         << "                FUZZBALL -- Build for FuzzBALL mode." << endl;
 }
 
 int main(int argc, char **argv)
 {
-    parse::trace_t trace;
-    if (argc == 2)
+    arguments_t args = parse_args(argc, argv);
+
+    // Informing the user that the parsing was incorrect.
+    if (args.parse_error)
     {
-        if (strcmp(argv[1], "fuzzmode") == 0)
-        {
-            istringstream input_stream(program_input);
-            if (!parse::lex(trace, input_stream))
-                return 1;
-        } else
-            print_correct_usage();
-    } else {
-        if (!parse::lex(trace, cin, true)) // Using the old version for now.
-            return 1;
+        cout << "Invalid arguments." << endl;
+        print_help(argc, argv);
+        return 1;
     }
+
+    // Printing help.
+    if (args.help)
+    {
+        print_help(argc, argv);
+        return 0;
+    }
+
+    parse::trace_t trace;
+    if (args.mode == arguments_t::mode_t::AFL)
+    {
+        istringstream input_stream(program_input);
+        if (!parse::lex(trace, input_stream))
+            return 1;
+    } else if (args.mode == arguments_t::mode_t::FUZZBALL)
+        if (!parse::lex(trace, cin, true))
+            return 1;
 
     BrokenHeap<MallocHeap> brokenHeap;
     if (!parse::execute<BrokenHeap<MallocHeap>>(brokenHeap, trace))
