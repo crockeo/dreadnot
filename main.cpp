@@ -77,8 +77,8 @@ void print_help(int argc, char **argv)
          << endl
          << "Flags:" << endl
          << "  --help (-h)            -- Displays this page." << endl
-         << "  --mode (-m) = AFL      -- Build for AFL mode." << endl
-         << "                FUZZBALL -- Build for FuzzBALL mode." << endl;
+         << "  --mode (-m) = AFL      -- Run with AFL support." << endl
+         << "                FUZZBALL -- Run with FuzzBALL support." << endl;
 }
 
 int main(int argc, char **argv)
