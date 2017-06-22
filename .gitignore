@@ -4,3 +4,6 @@ fuzz/find/
 heap-layers/
 postprocess.so
 Makefile
+
+# Ignoring a subfolder used for my vagrant file.
+test-land
