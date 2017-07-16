@@ -82,6 +82,7 @@ namespace grammar
         }
     };
 
+    // A sequence symbol, or a set of required, sequential symbols.
     struct sequence_t : symbol_t
     {
         vector<symbol_t *> sequence;
