@@ -56,10 +56,9 @@ arguments_t parse_args(int argc, char **argv)
             break;
 
         case 'm':
-            cout << "HELP" << endl;
-            if (strcmp(optarg, "afl") == 0)
+            if (strcmp(optarg, "AFL") == 0)
                 args.mode = arguments_t::mode_t::AFL;
-            else if (strcmp(optarg, "fuzzball") == 0)
+            else if (strcmp(optarg, "FUZZBALL") == 0)
                 args.mode = arguments_t::mode_t::FUZZBALL;
             else
                 args.parse_error = true;
@@ -112,5 +111,7 @@ int main(int argc, char **argv)
 
     BrokenHeap<MallocHeap> brokenHeap;
     if (!parse::execute<BrokenHeap<MallocHeap>>(brokenHeap, trace))
-    { }
+        return 1;
+
+    return 0;
 }

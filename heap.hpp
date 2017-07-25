@@ -13,8 +13,15 @@ namespace heap
     class BrokenHeap : public SuperHeap
     {
     private:
-        constexpr static int actions_len = 6;
-        const parse::opt_t actions[actions_len] {
+        const vector<parse::opt_t> operations {
+            MALLOC,
+            MALLOC,
+            FREE,
+            MALLOC,
+            FREE,
+            FREE,
+            MALLOC,
+            FREE,
             MALLOC,
             MALLOC,
             FREE,
@@ -23,16 +30,17 @@ namespace heap
             FREE
         };
 
-        int pos = 0;
+        int position = 0;
 
-        void check_case(parse::opt_t action)
+        void check_position(parse::opt_t curr)
         {
-            if (actions[pos] == action)
-            {
-                if (++pos >= actions_len)
-                    abort();
-            } else
-                pos = 0;
+            if (operations[position] == curr)
+                position++;
+            else
+                position = 0;
+
+            if (position > operations.size())
+                exit(1);
         }
 
     public:
@@ -42,15 +50,15 @@ namespace heap
             if (ptr == nullptr)
                 return nullptr;
 
-            check_case(parse::opt_t::MALLOC);
+            check_position(parse::opt_t::MALLOC);
 
             return ptr;
         }
 
         inline void free(void *ptr)
         {
+            check_position(parse::opt_t::FREE);
             SuperHeap::free(ptr);
-            check_case(parse::opt_t::FREE);
         }
     };
 }
