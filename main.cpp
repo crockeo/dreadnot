@@ -6,11 +6,10 @@
 
 #include "heap-layers/heaplayers.h"
 
+#include "failure_list.hpp"
 #include "parse.hpp"
-#include "heap.hpp"
 
 using namespace parse;
-using namespace heap;
 using namespace std;
 using namespace HL;
 
@@ -109,8 +108,30 @@ int main(int argc, char **argv)
         if (!parse::lex(trace, cin, true))
             return 1;
 
-    BrokenHeap<MallocHeap> brokenHeap;
-    if (!parse::execute<BrokenHeap<MallocHeap>>(brokenHeap, trace))
+    MallocHeap mallocHeap;
+
+    vector<parse::opt_t> opts
+    {
+        MALLOC,
+        MALLOC,
+        FREE,
+        MALLOC,
+        FREE,
+        FREE,
+        MALLOC,
+        FREE,
+        MALLOC,
+        MALLOC,
+        FREE,
+        MALLOC,
+        FREE,
+        FREE
+    };
+
+    order_failure_list_t *opt_list = new order_failure_list_t(opts);
+    bool b = !parse::execute<MallocHeap>(mallocHeap, opt_list, trace);
+    delete opt_list;
+    if (!b)
         return 1;
 
     return 0;

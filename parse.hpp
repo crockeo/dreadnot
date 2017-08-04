@@ -7,6 +7,9 @@
 #include <vector>
 #include <map>
 
+#include "failure_list.hpp"
+#include "token.hpp"
+
 namespace parse
 {
     using namespace std;
@@ -26,15 +29,6 @@ namespace parse
      *   either 8 bytes (name and size) for malloc, or 4 bytes (name) for free.
      */
 
-    enum opt_t { MALLOC, FREE };
-
-    struct token_t
-    {
-        opt_t operation;
-        uint32_t name;
-        uint32_t size;
-    };
-
     typedef vector<token_t> trace_t;
     typedef map<int, void *> state_t;
 
@@ -47,7 +41,7 @@ namespace parse
     bool validate_state(const state_t& state);
 
     template <typename allocator>
-    bool execute(allocator& alloc, trace_t trace)
+    bool execute(allocator& alloc, i_failure_list_t *failure_list, trace_t trace)
     {
         state_t chunks;
 
@@ -72,6 +66,9 @@ namespace parse
                 alloc.free(data);
                 chunks.erase(cit);
             }
+
+            if (failure_list->check_opt(*it))
+                abort();
         }
 
         return true;

@@ -3,12 +3,13 @@
 
 #include <vector>
 
-#include "parse.hpp"
+#include "token.hpp"
 
 // A generic interface that includes the ability to check whether the list
 // should fail given a token.
 struct i_failure_list_t
 {
+    virtual ~i_failure_list_t() { }
     virtual bool check_opt(parse::token_t tok) { return false; }
 };
 
