@@ -2,8 +2,11 @@
 #define _DREADNOT_FAILURE_LIST_H_
 
 #include <vector>
+#include <map>
 
 #include "token.hpp"
+
+using namespace std;
 
 // A generic interface that includes the ability to check whether the list
 // should fail given a token.
@@ -35,11 +38,11 @@ public:
 struct order_failure_list_t : public i_failure_list_t
 {
 private:
-    std::vector<parse::opt_t> opts;
+    vector<parse::opt_t> opts;
     int loc;
 
 public:
-    order_failure_list_t(std::vector<parse::opt_t> opts);
+    order_failure_list_t(vector<parse::opt_t> opts);
 
     virtual bool check_opt(parse::token_t tok);
 };
@@ -49,11 +52,28 @@ public:
 struct complex_failure_list_t : public i_failure_list_t
 {
 private:
-    std::vector<parse::token_t> tokens;
+    vector<parse::token_t> tokens;
     int loc;
 
 public:
-    complex_failure_list_t(std::vector<parse::token_t> tokens);
+    complex_failure_list_t(vector<parse::token_t> tokens);
+
+    virtual bool check_opt(parse::token_t tok);
+};
+
+// An implementation of i_failure_list that requires an ordered list of
+// operations including size and a fake ID. Rather than the actual, universal
+// ID, it uses the IDs of the tokens for any matching operation (which then
+// fills the ID until the corresponding free).
+struct less_complex_failure_list_t : public i_failure_list_t
+{
+private:
+    vector<parse::token_t> tokens;
+    map<int, int> id_map;
+    int loc;
+
+public:
+    less_complex_failure_list_t(vector<parse::token_t> tokens);
 
     virtual bool check_opt(parse::token_t tok);
 };

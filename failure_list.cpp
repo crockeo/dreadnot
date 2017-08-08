@@ -59,3 +59,40 @@ bool complex_failure_list_t::check_opt(parse::token_t tok)
         return true;
     return false;
 }
+
+////
+// less_complex_failure_list_t
+less_complex_failure_list_t::less_complex_failure_list_t(std::vector<parse::token_t> tokens) :
+        tokens(tokens), id_map() { loc = 0; }
+
+bool less_complex_failure_list_t::check_opt(parse::token_t tok)
+{
+    parse::token_t curr = tokens[loc];
+    if (tok.operation == parse::MALLOC && tok.size == curr.size)
+    {
+        id_map.insert(make_pair<int, int>(curr.name, tok.name));
+        loc++;
+    } else
+    {
+        loc = 0;
+        id_map.clear();
+    }
+
+    if (tok.operation == parse::FREE)
+    {
+        auto it = id_map.find(tok.name);
+        if (it != id_map.end() && tok.name == it->second)
+        {
+            loc++;
+            id_map.erase(it);
+        } else
+        {
+            loc = 0;
+            id_map.clear();
+        }
+    }
+
+    if (loc >= tokens.size())
+        return true;
+    return false;
+}

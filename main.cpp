@@ -8,6 +8,7 @@
 
 #include "failure_list.hpp"
 #include "parse.hpp"
+#include "token.hpp"
 
 using namespace parse;
 using namespace std;
@@ -103,36 +104,35 @@ int main(int argc, char **argv)
     {
         istringstream input_stream(program_input);
         if (!parse::lex(trace, input_stream))
+        {
+            cout << "AFL mode lex failure." << endl;
             return 1;
+        }
     } else if (args.mode == arguments_t::mode_t::FUZZBALL)
+    {
         if (!parse::lex(trace, cin, true))
+        {
+            cout << "FUZZBALL mode lex failure." << endl;
             return 1;
+        }
+    }
 
     MallocHeap mallocHeap;
 
-    vector<parse::opt_t> opts
+    vector<parse::token_t> tokens
     {
-        MALLOC,
-        MALLOC,
-        FREE,
-        MALLOC,
-        FREE,
-        FREE,
-        MALLOC,
-        FREE,
-        MALLOC,
-        MALLOC,
-        FREE,
-        MALLOC,
-        FREE,
-        FREE
+        parse::token_t(parse::MALLOC, 0, 16),
+        parse::token_t(parse::FREE, 0, 0)
     };
 
-    order_failure_list_t *opt_list = new order_failure_list_t(opts);
-    bool b = !parse::execute<MallocHeap>(mallocHeap, opt_list, trace);
-    delete opt_list;
+    less_complex_failure_list_t *complex_list = new less_complex_failure_list_t(tokens);
+    bool b = parse::execute<MallocHeap>(mallocHeap, complex_list, trace);
+    delete complex_list;
     if (!b)
+    {
+        cout << "Parse execution failure." << endl;
         return 1;
+    }
 
     return 0;
 }

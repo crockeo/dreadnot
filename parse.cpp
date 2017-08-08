@@ -1,4 +1,5 @@
 #include "parse.hpp"
+#include "token.hpp"
 
 #include <iostream>
 
@@ -20,6 +21,10 @@ namespace parse
      *   (rather than bits, for ease of parsing), 'M' and 'F', and follow with
      *   either 8 bytes (name and size) for malloc, or 4 bytes (name) for free.
      */
+
+    token_t::token_t(opt_t operation, uint32_t name, uint32_t size) :
+            operation(operation), name(name), size(size) { }
+    token_t::token_t() { }
 
     // OLD VERSION of the lex function, new version below follows the
     // documentation now-present above and in parse.hpp.
@@ -64,6 +69,7 @@ namespace parse
 
             trace.push_back(token);
         }
+        delete tok;
 
         return true;
     }

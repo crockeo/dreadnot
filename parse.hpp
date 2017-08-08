@@ -57,13 +57,11 @@ namespace parse
                     abort(); // TODO: Expand this.
             } else if (it->operation == FREE)
             {
-                // TODO: Ensure fuzzer only generates matching frees.
                 auto cit = chunks.find(it->name);
                 if (cit == chunks.end())
                     return false;
 
-                void *data = chunks[it->name];
-                alloc.free(data);
+                alloc.free(cit->second);
                 chunks.erase(cit);
             }
 
