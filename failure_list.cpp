@@ -23,6 +23,12 @@ bool count_failure_list_t::check_opt(parse::token_t tok)
     return false;
 }
 
+void count_failure_list_t::clear()
+{
+    mallocCalls = 0;
+    freeCalls = 0;
+}
+
 ////
 // order_failure_list_t
 order_failure_list_t::order_failure_list_t(std::vector<parse::opt_t> opts) :
@@ -38,6 +44,11 @@ bool order_failure_list_t::check_opt(parse::token_t tok)
     if (loc >= opts.size())
         return true;
     return false;
+}
+
+void order_failure_list_t::clear()
+{
+    loc = 0;
 }
 
 ////
@@ -58,6 +69,11 @@ bool complex_failure_list_t::check_opt(parse::token_t tok)
     if (loc >= tokens.size())
         return true;
     return false;
+}
+
+void complex_failure_list_t::clear()
+{
+    loc = 0;
 }
 
 ////
@@ -95,4 +111,9 @@ bool less_complex_failure_list_t::check_opt(parse::token_t tok)
     if (loc >= tokens.size())
         return true;
     return false;
+}
+
+void less_complex_failure_list_t::clear()
+{
+    loc = 0;
 }

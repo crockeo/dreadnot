@@ -10,8 +10,10 @@
 #include "grammar.hpp"
 #include "parse.hpp"
 #include "token.hpp"
+#include "heap.hpp"
 
 using namespace parse;
+using namespace heap;
 using namespace std;
 using namespace HL;
 
@@ -98,36 +100,63 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    grammar::generator_t generator;
+    // Seeding the random generator with the current time to create a
+    // semi-random string at runtime.
+    srand(
+       chrono::duration_cast<chrono::microseconds>(
+           chrono::high_resolution_clock::now().time_since_epoch()
+       ).count()
+    );
 
-    // TODO: Implement generator thing.
-    //         GOTTA LOOK ONLINE
+    // Preparing fields for the main loop.
+    grammar::generator_t generator;
+    generator.add_product("F", "free @ID");
+    generator.add_product("M", "malloc @ID @RAND");
+    generator.add_product("O", "M;\n;F|M;\n;O;\n;F|O;\n;O");
 
     stringstream sentence;
-    generator.generate(sentence, "");
-
+    string sentence_s;
     parse::trace_t trace;
-    if (!parse::lex(trace, sentence, true))
-    {
-        cout << "Lex failure" << endl;
-        return 1;
-    }
 
-    MallocHeap mallocHeap;
-
-    vector<parse::token_t> tokens
+    vector<parse::opt_t> opts
     {
-        parse::token_t(parse::MALLOC, 0, 16),
-        parse::token_t(parse::FREE, 0, 0)
+        parse::MALLOC,
+        parse::MALLOC,
+        parse::MALLOC,
+        parse::MALLOC,
+        parse::MALLOC,
+        parse::FREE,
+        parse::FREE,
+        parse::FREE,
+        parse::FREE,
+        parse::FREE
     };
 
-    less_complex_failure_list_t *complex_list = new less_complex_failure_list_t(tokens);
-    bool b = parse::execute<MallocHeap>(mallocHeap, complex_list, trace);
-    delete complex_list;
-    if (!b)
+    order_failure_list_t order_list(opts);
+
+    clearable_heap_t<MallocHeap> clearable_heap;
+
+    while (true)
     {
-        cout << "Parse execution failure." << endl;
-        return 1;
+        sentence.clear();
+        trace.clear();
+        order_list.clear();
+        clearable_heap.clear();
+
+        generator.generate(sentence, "O");
+        sentence_s = sentence.str();
+
+        if (!parse::lex(trace, sentence, true))
+        {
+            cout << "Lex failure on: " << sentence_s << endl;
+            return 1;
+        }
+
+        if (!parse::execute<clearable_heap_t<MallocHeap>>(clearable_heap, &order_list, trace))
+        {
+            cout << "Parse failure on: " << sentence_s << endl;
+            return 1;
+        }
     }
 
     return 0;

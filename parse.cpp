@@ -69,7 +69,6 @@ namespace parse
 
             trace.push_back(token);
         }
-        delete tok;
 
         return true;
     }

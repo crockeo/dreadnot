@@ -14,6 +14,7 @@ struct i_failure_list_t
 {
     virtual ~i_failure_list_t() { }
     virtual bool check_opt(parse::token_t tok) { return false; }
+    virtual void clear() { }
 };
 
 // An implementation of i_failure_list_t that requires a given number of mallocs
@@ -31,6 +32,7 @@ public:
     count_failure_list_t(int maxMallocCalls, int maxFreeCalls);
 
     virtual bool check_opt(parse::token_t tok);
+    virtual void clear();
 };
 
 // An implementation of i_failure_list_t that requires an ordered list of
@@ -45,6 +47,7 @@ public:
     order_failure_list_t(vector<parse::opt_t> opts);
 
     virtual bool check_opt(parse::token_t tok);
+    virtual void clear();
 };
 
 // An implementation of i_failure_list that requires an ordered list of
@@ -59,6 +62,7 @@ public:
     complex_failure_list_t(vector<parse::token_t> tokens);
 
     virtual bool check_opt(parse::token_t tok);
+    virtual void clear();
 };
 
 // An implementation of i_failure_list that requires an ordered list of
@@ -76,6 +80,7 @@ public:
     less_complex_failure_list_t(vector<parse::token_t> tokens);
 
     virtual bool check_opt(parse::token_t tok);
+    virtual void clear();
 };
 
 #endif

@@ -66,7 +66,7 @@ namespace parse
             }
 
             if (failure_list->check_opt(*it))
-                abort();
+                return false;
         }
 
         return true;
