@@ -116,20 +116,22 @@ int main(int argc, char **argv)
 
     stringstream sentence;
     string sentence_s;
-    parse::trace_t trace;
+    trace_t trace;
 
-    vector<parse::opt_t> opts
+    vector<opt_t> opts
     {
-        parse::MALLOC,
-        parse::MALLOC,
-        parse::MALLOC,
-        parse::MALLOC,
-        parse::MALLOC,
-        parse::FREE,
-        parse::FREE,
-        parse::FREE,
-        parse::FREE,
-        parse::FREE
+        MALLOC,
+        MALLOC,
+        FREE,
+        MALLOC,
+        FREE,
+        FREE,
+        MALLOC,
+        FREE,
+        MALLOC,
+        MALLOC,
+        FREE,
+        FREE
     };
 
     order_failure_list_t order_list(opts);
@@ -146,13 +148,13 @@ int main(int argc, char **argv)
         generator.generate(sentence, "O");
         sentence_s = sentence.str();
 
-        if (!parse::lex(trace, sentence, true))
+        if (!lex(trace, sentence, true))
         {
             cout << "Lex failure on: " << sentence_s << endl;
             return 1;
         }
 
-        if (!parse::execute<clearable_heap_t<MallocHeap>>(clearable_heap, &order_list, trace))
+        if (!execute<clearable_heap_t<MallocHeap>>(clearable_heap, &order_list, trace))
         {
             cout << "Parse failure on: " << sentence_s << endl;
             return 1;
