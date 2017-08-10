@@ -7,6 +7,7 @@
 #include "heap-layers/heaplayers.h"
 
 #include "failure_list.hpp"
+#include "grammar.hpp"
 #include "parse.hpp"
 #include "token.hpp"
 
@@ -75,9 +76,7 @@ void print_help(int argc, char **argv)
          << "  " << argv[0] << " [flags]" << endl
          << endl
          << "Flags:" << endl
-         << "  --help (-h)            -- Displays this page." << endl
-         << "  --mode (-m) = AFL      -- Run with AFL support." << endl
-         << "                FUZZBALL -- Run with FuzzBALL support." << endl;
+         << "  --help (-h) -- Displays this page." << endl;
 }
 
 int main(int argc, char **argv)
@@ -99,22 +98,19 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    grammar::generator_t generator;
+
+    // TODO: Implement generator thing.
+    //         GOTTA LOOK ONLINE
+
+    stringstream sentence;
+    generator.generate(sentence, "");
+
     parse::trace_t trace;
-    if (args.mode == arguments_t::mode_t::AFL)
+    if (!parse::lex(trace, sentence, true))
     {
-        istringstream input_stream(program_input);
-        if (!parse::lex(trace, input_stream))
-        {
-            cout << "AFL mode lex failure." << endl;
-            return 1;
-        }
-    } else if (args.mode == arguments_t::mode_t::FUZZBALL)
-    {
-        if (!parse::lex(trace, cin, true))
-        {
-            cout << "FUZZBALL mode lex failure." << endl;
-            return 1;
-        }
+        cout << "Lex failure" << endl;
+        return 1;
     }
 
     MallocHeap mallocHeap;
