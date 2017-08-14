@@ -12,6 +12,12 @@
 #include "token.hpp"
 #include "heap.hpp"
 
+////
+// Switch to false to disable debug mode. Performed in preprocessor to minimize
+// impact on non-debug distributions.
+#define DEBUG_MODE true
+
+using namespace chrono;
 using namespace parse;
 using namespace heap;
 using namespace std;
@@ -100,12 +106,11 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    // Seeding the random generator with the current time to create a
+    // Getting the current time nad seeding the random generator to create a
     // semi-random string at runtime.
+    auto start = high_resolution_clock::now();
     srand(
-       chrono::duration_cast<chrono::microseconds>(
-           chrono::high_resolution_clock::now().time_since_epoch()
-       ).count()
+        duration_cast<microseconds>(start.time_since_epoch()).count()
     );
 
     // Preparing fields for the main loop.
@@ -157,9 +162,16 @@ int main(int argc, char **argv)
         if (!execute<clearable_heap_t<MallocHeap>>(clearable_heap, &order_list, trace))
         {
             cout << "Parse failure on: " << sentence_s << endl;
-            return 1;
+            break;
         }
     }
+
+#if DEBUG_MODE
+    auto diff = high_resolution_clock().now() - start;
+    cout << "------------------" << endl
+         << "-- Time elapsed --" << endl
+         << duration_cast<microseconds>(diff).count() / 1000000.f << "(s)" << endl;
+#endif
 
     return 0;
 }
