@@ -1,9 +1,22 @@
 #include "grammar.hpp"
 
+#include <iostream>
+#include <queue>
+#include <stack>
+
 namespace grammar
 {
     namespace util
     {
+        struct str_depth_t
+        {
+            string str;
+            int id;
+
+            str_depth_t(string str, int id) :
+                    str(str), id(id) { }
+        };
+
         // Segmenting a string into a series of strings separated by a delimiter.
         vector<string> split(string s, char delim)
         {
@@ -34,32 +47,6 @@ namespace grammar
         }
     }
 
-    // Expanding a product into a random, gramatically correct sentence.
-    // Uses a util::seen_t<string> to maintain the count of seen products
-    // to implement a converging generator.
-    //
-    // ID is used to parameterize mallocs and frees with a specific name.
-    void generator_t::generate(stringstream& accumulator, string lhs, util::seen_t<string> seens, int id)
-    {
-        vector<string>& transforms = products[lhs];
-        string transform = util::random_choice<string>(
-            transforms,
-            seens
-        );
-
-        vector<string> symbols = util::split(transform, ';');
-        for (auto it = symbols.begin(); it != symbols.end(); it++) {
-            if (products.find(*it) == products.end()) {
-                util::replace(*it, "@RAND", to_string(rand() % 16000));
-                util::replace(*it, "@ID", to_string(id));
-                accumulator << (*it);
-            } else {
-                seens.inc_else(transform);
-                generate(accumulator, *it, seens, id + 1);
-            }
-        }
-    }
-
     // Explicitly adding a product.
     void generator_t::add_product(string lhs, vector<string> rhs)
     {
@@ -77,12 +64,34 @@ namespace grammar
     // Allows the user to provide their own accumulator.
     void generator_t::generate(stringstream& accumulator, string lhs)
     {
-        generate(
-            accumulator,
-            lhs,
-            util::seen_t<string>(),
-            0
-        );
+        util::seen_t<string> seens;
+
+        stack<util::str_depth_t> remaining_products;
+        remaining_products.push(util::str_depth_t(lhs, 0));
+
+        while (remaining_products.size() > 0)
+        {
+            util::str_depth_t current_product = remaining_products.top();
+            remaining_products.pop();
+
+            if (products.find(current_product.str) == products.end())
+            {
+                util::replace(current_product.str, "@RAND", to_string(rand() % 16000));
+                util::replace(current_product.str, "@ID", to_string(current_product.id));
+                accumulator << current_product.str;
+            } else
+            {
+                seens.inc_else(current_product.str);
+                string transform = util::random_choice<string>(
+                    products[current_product.str],
+                    seens
+                );
+
+                vector<string> symbols = util::split(transform, ';');
+                for (auto it = symbols.rbegin(); it != symbols.rend(); it++)
+                    remaining_products.push(util::str_depth_t(*it, current_product.id + 1));
+            }
+        }
     }
 
     // Expanding a product into a random, gramatically correct sentence.

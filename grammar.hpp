@@ -57,25 +57,12 @@ namespace grammar
             int i = rand() % choices.size();
             return choices[i];
         }
-
-        // Segmenting a string into a series of strings separated by a delimiter.
-        vector<string> split(string s, char delim);
-
-        // Replacing all occurrences of 'from' in 'str' with 'to'.
-        int replace(string& str, const string& from, const string& to);
     }
 
     class generator_t
     {
     private:
         map<string, vector<string>> products;
-
-        // Expanding a product into a random, gramatically correct sentence.
-        // Uses a util::seen_t<string> to maintain the count of seen products
-        // to implement a converging generator.
-        //
-        // ID is used to parameterize mallocs and frees with a specific name.
-        void generate(stringstream& accumulator, string lhs, util::seen_t<string> seens, int id);
 
     public:
         // Explicitly adding a product.

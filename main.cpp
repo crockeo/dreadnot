@@ -123,7 +123,7 @@ int main(int argc, char **argv)
     string sentence_s;
     trace_t trace;
 
-    i_failure_list_t *current_list = default_order_failure_list();
+    i_failure_list_t *current_list = default_less_complex_failure_list();
     clearable_heap_t<MallocHeap> clearable_heap;
     while (true)
     {
