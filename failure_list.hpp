@@ -83,4 +83,7 @@ public:
     virtual void clear();
 };
 
+order_failure_list_t *default_order_failure_list();
+less_complex_failure_list_t *default_less_complex_failure_list();
+
 #endif

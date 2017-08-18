@@ -1,5 +1,7 @@
 #include "failure_list.hpp"
 
+using namespace parse;
+
 ////
 // count_failure_list_t
 count_failure_list_t::count_failure_list_t(int maxMallocCalls, int maxFreeCalls)
@@ -116,4 +118,36 @@ bool less_complex_failure_list_t::check_opt(parse::token_t tok)
 void less_complex_failure_list_t::clear()
 {
     loc = 0;
+}
+
+order_failure_list_t *default_order_failure_list()
+{
+    vector<opt_t> opts
+    {
+        MALLOC,
+        MALLOC,
+        FREE,
+        MALLOC,
+        FREE,
+        FREE,
+        MALLOC,
+        FREE,
+        MALLOC,
+        MALLOC,
+        FREE,
+        FREE
+    };
+
+    return new order_failure_list_t(opts);
+}
+
+less_complex_failure_list_t *default_less_complex_failure_list()
+{
+    vector<parse::token_t> toks
+    {
+        parse::token_t(MALLOC, 0, 16),
+        parse::token_t(FREE, 0, 0)
+    };
+
+    return new less_complex_failure_list_t(toks);
 }

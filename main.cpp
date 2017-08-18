@@ -123,31 +123,13 @@ int main(int argc, char **argv)
     string sentence_s;
     trace_t trace;
 
-    vector<opt_t> opts
-    {
-        MALLOC,
-        MALLOC,
-        FREE,
-        MALLOC,
-        FREE,
-        FREE,
-        MALLOC,
-        FREE,
-        MALLOC,
-        MALLOC,
-        FREE,
-        FREE
-    };
-
-    order_failure_list_t order_list(opts);
-
+    i_failure_list_t *current_list = default_order_failure_list();
     clearable_heap_t<MallocHeap> clearable_heap;
-
     while (true)
     {
         sentence.clear();
         trace.clear();
-        order_list.clear();
+        current_list->clear();
         clearable_heap.clear();
 
         generator.generate(sentence, "O");
@@ -159,7 +141,7 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        if (!execute<clearable_heap_t<MallocHeap>>(clearable_heap, &order_list, trace))
+        if (!execute<clearable_heap_t<MallocHeap>>(clearable_heap, current_list, trace))
         {
             cout << "Parse failure on: " << sentence_s << endl;
             break;
